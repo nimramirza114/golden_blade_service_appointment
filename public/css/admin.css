@@ -1,0 +1,37 @@
+.admin-body { display: flex; min-height: 100vh; background: var(--cream); }
+
+/* Sidebar (charcoal + gold) */
+.sidebar { width: 240px; background: #161616; color: #fff; padding: 24px 16px; display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; flex: none; }
+.sidebar-brand { color: #D6B879; font-family: 'Playfair Display', serif; font-size: 20px; text-decoration: none; margin-bottom: 30px; }
+.sidebar-brand small { display: block; font-size: 9px; letter-spacing: 3px; color: #B8935A; font-family: 'Inter', sans-serif; }
+.sidebar nav { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.sidebar nav a { color: #d8d2c5; text-decoration: none; padding: 10px 14px; border-radius: 4px; font-size: 14px; }
+.sidebar nav a:hover { background: #2a2a2a; color: #fff; }
+.sidebar nav a.active { background: #B8935A; color: #fff; font-weight: 600; }
+.sidebar-logout button { width: 100%; background: transparent; color: #fff; border: 1px solid #B8935A; padding: 10px; border-radius: 4px; cursor: pointer; }
+.sidebar-logout button:hover { background: #B8935A; }
+
+.admin-main { flex: 1; min-width: 0; }
+.admin-topbar { background: #fff; padding: 16px 30px; text-align: right; border-bottom: 1px solid var(--line); font-size: 14px; }
+.admin-content { padding: 30px; }
+.admin-content h1, .admin-content h2 { margin-bottom: 16px; }
+
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 30px; }
+.stat { background: #fff; border: 1px solid var(--line); padding: 20px; border-radius: 6px; }
+.stat .num { font-size: 32px; font-weight: 700; color: var(--gold); font-family: 'Playfair Display', serif; }
+
+.page-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.inline-form { display: inline; }
+
+/* Admin menu button (mobile only) */
+.admin-menu-btn { display: none; }
+
+@media (max-width: 900px) {
+    .sidebar { position: fixed; left: -260px; top: 0; z-index: 200; transition: left .25s; }
+    .sidebar.open { left: 0; }
+    .admin-menu-btn { display: block; position: fixed; top: 10px; left: 10px; z-index: 150; background: #161616; color: #fff; border: 0; border-radius: 4px; padding: 8px; cursor: pointer; }
+    .admin-menu-btn svg { width: 22px; height: 22px; display: block; }
+    .admin-topbar { padding-left: 60px; }
+    .admin-content { padding: 20px 14px; }
+    .page-head { flex-wrap: wrap; gap: 10px; }
+}
