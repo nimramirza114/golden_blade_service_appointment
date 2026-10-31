@@ -16,7 +16,7 @@
                 @foreach($services as $service)
                     <option value="{{ $service->id }}"
                         {{ old('service_id', $selected) == $service->id ? 'selected' : '' }}>
-                        {{ $service->name }} (QAR {{ $service->price }})
+                        {{ $service->name }} (PKR {{ $service->price }})
                     </option>
                 @endforeach
             </select>
