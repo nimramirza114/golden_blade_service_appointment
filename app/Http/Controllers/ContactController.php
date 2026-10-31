@@ -10,13 +10,22 @@ class ContactController extends Controller
 {
     public function store(Request $request)
     {
-        $data = $request->validate([
-            'name'    => 'required|string|max:100',
-            'email'   => 'required|email|max:150',
-            'message' => 'required|string|min:10|max:2000',
+        $v = $request->validate([
+            'first_name' => 'required|string|max:50',
+            'last_name'  => 'nullable|string|max:50',
+            'email'      => 'required|email|max:150',
+            'phone'      => 'nullable|string|max:30',
+            'message'    => 'required|string|min:10|max:2000',
         ], [
             'message.min' => 'Please write at least 10 characters.',
         ]);
+
+        // table has name/email/message only: join the names, put the phone (if any) on top of the message
+        $data = [
+            'name'    => trim($v['first_name'] . ' ' . ($v['last_name'] ?? '')),
+            'email'   => $v['email'],
+            'message' => (filled($v['phone'] ?? null) ? 'Phone: ' . $v['phone'] . "\n\n" : '') . $v['message'],
+        ];
 
         // 1) save first: if this fails an exception is thrown and NO success message is shown
         $contact = ContactMessage::create($data);
