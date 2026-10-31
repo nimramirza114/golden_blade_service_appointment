@@ -1,76 +1,56 @@
-<?php
+@extends('layouts.admin')
 
-use App\Http\Controllers\HomeController;
-use App\Http\Controllers\ServiceController;
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\Admin\DashboardController;
-use App\Http\Controllers\Admin\CategoryController;
-use App\Http\Controllers\Admin\ServiceController as AdminServiceController;
-use App\Http\Controllers\Admin\StaffController;
-use App\Http\Controllers\Admin\AssignmentController;
-use App\Http\Controllers\AppointmentController;
-use App\Http\Controllers\ContactController;
-use App\Http\Controllers\NotificationController;
-use App\Http\Controllers\Admin\MessageController;
-use App\Http\Controllers\Admin\AppointmentController as AdminAppointmentController;
-use Illuminate\Support\Facades\Route;
+@section('title', 'Appointments')
 
-// Public pages
-Route::get('/', [HomeController::class, 'index'])->name('home');
-Route::get('/services', [ServiceController::class, 'index'])->name('services.index');
-Route::get('/services/{id}', [ServiceController::class, 'show'])->name('services.show');
+@section('content')
+<h1>All Appointments</h1>
 
-Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
-Route::post('/contact', [ContactController::class, 'store'])->middleware('throttle:5,1')->name('contact.send');
-Route::get('/about', [HomeController::class, 'about'])->name('about');
+<form method="GET" action="{{ route('admin.appointments.index') }}" class="search-form" style="margin-bottom:16px;">
+    <select name="status" onchange="this.form.submit()">
+        <option value="">All Statuses</option>
+        @foreach($statuses as $s)
+            <option value="{{ $s }}" {{ request('status') === $s ? 'selected' : '' }}>{{ $s }}</option>
+        @endforeach
+    </select>
+    <input type="date" name="date" value="{{ request('date') }}" onchange="this.form.submit()">
+    <a href="{{ route('admin.appointments.index') }}" class="btn btn-outline">Reset</a>
+</form>
 
-// Breeze dashboard redirect
-Route::get('/dashboard', function () {
-    return auth()->user()->isAdmin()
-        ? redirect()->route('admin.dashboard')
-        : redirect()->route('home');
-})->middleware('auth')->name('dashboard');
+<table class="data">
+    <tr><th>#</th><th>Customer</th><th>Service</th><th>Barber</th><th>Date & Time</th><th>Status</th><th>Action</th></tr>
+    @forelse($appointments as $a)
+        <tr>
+            <td>{{ $a->id }}</td>
+            <td>{{ $a->user->name }}</td>
+            <td>{{ $a->service->name }}</td>
+            <td>{{ $a->staff->name }}</td>
+            <td>{{ $a->appointment_date }} {{ $a->appointment_time }}</td>
+            <td><span class="status status-{{ strtolower($a->status) }}">{{ $a->status }}</span></td>
+            <td>
+                @if($a->status === 'Pending')
+                    <form action="{{ route('admin.appointments.update', $a) }}" method="POST" style="display:inline;">
+                        @csrf @method('PUT')
+                        <input type="hidden" name="status" value="Confirmed">
+                        <button type="submit" class="btn btn-gold btn-sm">Confirm</button>
+                    </form>
+                    <form action="{{ route('admin.appointments.update', $a) }}" method="POST" style="display:inline;">
+                        @csrf @method('PUT')
+                        <input type="hidden" name="status" value="Cancelled">
+                        <button type="submit" class="btn btn-outline btn-sm">Cancel</button>
+                    </form>
+                @endif
+                <a href="{{ route('admin.appointments.edit', $a) }}" class="btn btn-outline btn-sm">Details</a>
+                <form action="{{ route('admin.appointments.destroy', $a) }}" method="POST" style="display:inline;"
+                      onsubmit="return confirm('Delete appointment #{{ $a->id }} permanently? This cannot be undone.');">
+                    @csrf @method('DELETE')
+                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                </form>
+            </td>
+        </tr>
+    @empty
+        <tr><td colspan="7">No appointments found.</td></tr>
+    @endforelse
+</table>
 
-// Logged-in users (customer area)
-Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-
-    // Notification bell (customers and admins)
-    Route::get('/notifications/count', [NotificationController::class, 'count'])->name('notifications.count');
-    Route::post('/notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.readAll');
-    Route::get('/notifications/{id}/open', [NotificationController::class, 'open'])->name('notifications.open');
-
-    Route::get('/book', [AppointmentController::class, 'create'])->name('appointments.create');
-    Route::post('/book', [AppointmentController::class, 'store'])->name('appointments.store');
-    Route::get('/my-appointments', [AppointmentController::class, 'index'])->name('appointments.index');
-    Route::patch('/my-appointments/{appointment}/cancel', [AppointmentController::class, 'cancel'])->name('appointments.cancel');
-});
-
-// Link from the admin's email: confirm / cancel without logging in (signed URL, 7 days)
-Route::match(['get', 'post'], '/appointments/{appointment}/quick-action', [AdminAppointmentController::class, 'quick'])
-    ->middleware('signed')->name('appointments.quick');
-
-// Admin panel (auth + admin middleware)
-Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
-    Route::resource('categories', CategoryController::class)->except('show');
-    Route::resource('services', AdminServiceController::class)->except('show');
-    Route::resource('staff', StaffController::class)->except('show');
-
-    Route::get('assignments', [AssignmentController::class, 'index'])->name('assignments.index');
-    Route::get('assignments/{staff}/edit', [AssignmentController::class, 'edit'])->name('assignments.edit');
-    Route::put('assignments/{staff}', [AssignmentController::class, 'update'])->name('assignments.update');
-
-    Route::get('appointments', [AdminAppointmentController::class, 'index'])->name('appointments.index');
-    Route::get('appointments/{appointment}/edit', [AdminAppointmentController::class, 'edit'])->name('appointments.edit');
-    Route::put('appointments/{appointment}', [AdminAppointmentController::class, 'update'])->name('appointments.update');
-    Route::delete('appointments/{appointment}', [AdminAppointmentController::class, 'destroy'])->name('appointments.destroy');
-
-    Route::get('messages', [MessageController::class, 'index'])->name('messages.index');
-    Route::get('messages/{message}', [MessageController::class, 'show'])->name('messages.show');
-    Route::delete('messages/{message}', [MessageController::class, 'destroy'])->name('messages.destroy');
-});
-
-require __DIR__ . '/auth.php';
+<div style="margin-top:16px;">{{ $appointments->links() }}</div>
+@endsection
