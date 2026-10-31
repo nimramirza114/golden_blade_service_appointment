@@ -26,7 +26,7 @@
             <h2>Request a Service</h2>
             <div class="gb-req-grid">
                 <input type="text" name="name" placeholder="Your Name" aria-label="Your Name">
-                <input type="tel" name="phone" placeholder="Your Number" aria-label="Your Number">
+                <input type="tel" name="phone" placeholder="phone Number" aria-label="Your Number">
                 <input type="email" name="email" placeholder="Your Email" aria-label="Your Email">
                 <input type="text" name="address" placeholder="Address" aria-label="Address">
                 <input type="text" name="message" placeholder="Message" aria-label="Message">

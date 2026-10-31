@@ -54,6 +54,14 @@ class AppointmentController extends Controller
             ->with('success', 'Appointment status updated to ' . $data['status'] . '.');
     }
 
+    public function destroy(Appointment $appointment)
+    {
+        $appointment->delete();
+
+        return redirect()->route('admin.appointments.index')
+            ->with('success', 'Appointment #' . $appointment->id . ' deleted.');
+    }
+
     /**
      * Opened from the link in the admin's email (signed URL, no login needed).
      * GET shows the appointment with Confirm / Cancel buttons, POST applies the choice.
